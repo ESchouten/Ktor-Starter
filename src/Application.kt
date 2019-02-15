@@ -1,5 +1,7 @@
 package com.erikschouten
 
+import com.erikschouten.user.UserRepository
+import com.erikschouten.user.user
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -19,6 +21,7 @@ import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
+import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
@@ -34,9 +37,7 @@ fun main(args: Array<String>) = EngineMain.main(args)
 fun Application.module(testing: Boolean = false) {
 
     install(ContentNegotiation) {
-        gson {
-            setPrettyPrinting()
-        }
+        gson {}
     }
 
     install(CallLogging) {
@@ -60,28 +61,11 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
+    install(Routing) {
+        user()
+    }
+
     routing {
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
-
-        post("login") {
-            val credentials = call.receive<UserPasswordCredential>()
-
-            val token = if (UserRepository.checkPassword(credentials.name, credentials.password)) {
-                JwtConfig.makeToken(UserRepository.get(credentials.name))
-            } else null
-
-            if (token != null) call.respondText(token)
-            else call.respond(HttpStatusCode.Unauthorized)
-        }
-
-        authenticate {
-            get("/hi") {
-                call.respond(call.authentication.principal!!)
-            }
-        }
-
         webSocket("/myws/echo") {
             send(Frame.Text("Hi from server"))
             while (true) {
