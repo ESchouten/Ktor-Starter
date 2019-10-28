@@ -16,20 +16,13 @@ object JwtConfig {
         .withIssuer(issuer)
         .build()
 
-    /**
-     * Produce a token for this combination of User and Account
-     */
-    fun makeToken(user: User): String = JWT.create()
-        .withSubject("Authentication")
+    fun generateToken(user: User): String = JWT.create()
+        .withSubject(user.id.toString())
         .withIssuer(issuer)
-        .withClaim("id", user.id.toString())
         .withArrayClaim("roles", user.authorities.map { it.toString() }.toTypedArray())
         .withExpiresAt(getExpiration())
         .sign(algorithm)
 
-    /**
-     * Calculate the expiration Date based on current time + the given validity
-     */
     private fun getExpiration() = Date(System.currentTimeMillis() + validityInMs)
 
 }

@@ -38,7 +38,7 @@ fun Route.user() {
         val user = UserRepository.get(credentials.name)
 
         val token = if (user != null && UserRepository.checkPassword(credentials.name, credentials.password)) {
-            JwtConfig.makeToken(user)
+            "Bearer " + JwtConfig.generateToken(user)
         } else null
 
         if (token != null) call.respondText(token)

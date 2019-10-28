@@ -19,6 +19,7 @@ import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
 import io.ktor.request.path
 import io.ktor.request.receive
+import io.ktor.response.header
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.Routing
@@ -37,13 +38,10 @@ fun main(args: Array<String>) = EngineMain.main(args)
 fun Application.module(testing: Boolean = false) {
 
     install(ContentNegotiation) {
-        gson {}
+        gson()
     }
 
-    install(CallLogging) {
-        level = Level.INFO
-        filter { call -> call.request.path().startsWith("/") }
-    }
+    install(CallLogging)
 
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(15)
@@ -56,7 +54,7 @@ fun Application.module(testing: Boolean = false) {
         jwt {
             verifier(JwtConfig.verifier)
             validate {
-                UUID.fromString(it.payload.getClaim("id").asString())?.let(UserRepository::get)
+                UUID.fromString(it.payload.subject)?.let(UserRepository::get)
             }
         }
     }
